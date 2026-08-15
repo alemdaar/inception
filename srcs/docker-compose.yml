@@ -1,0 +1,120 @@
+services:
+  mariadb:
+    build:
+      context: ./requirements/mariadb
+    image: mariadb
+    container_name: mariadb
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+    image: wordpress
+    container_name: wordpress
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+      - redis
+
+  nginx:
+    build:
+      context: ./requirements/nginx
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+  redis:
+    build:
+      context: ./requirements/redis
+    image: redis
+    container_name: redis
+    restart: always
+    networks:
+      - inception
+  ftp:
+    build:
+      context: ./requirements/ftp
+    image: ftp
+    container_name: ftp
+    restart: always
+    volumes:
+      - wordpress_data:/var/www/html
+    ports:
+      - "21:21"
+      - "21100-21110:21100-21110"
+    networks:
+      - inception
+    depends_on:
+      - wordpress
+  static:
+    build:
+      context: ./requirements/static
+    image: static
+    container_name: static
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - inception
+  adminer:
+    build:
+      context: ./requirements/adminer
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    networks:
+      - inception
+    depends_on:
+      - mariadb
+
+  status:
+    build:
+      context: ./requirements/status
+    image: status
+    container_name: status
+    restart: always
+    ports:
+      - "8082:80"
+    networks:
+      - inception
+
+networks:
+  inception:
+
+volumes:
+  mariadb_data:
+    name: mariadb_data
+    driver: local
+    driver_opts:
+      type:   none
+      o:      bind
+      device: /home/${USER}/data/mariadb_data
+
+  wordpress_data:
+    name: wordpress_data
+    driver: local
+    driver_opts:
+      type:   none
+      o:      bind
+      device: /home/${USER}/data/wordpress_data

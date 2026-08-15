@@ -1,0 +1,18 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 20px;
+}
+
+h1 {
+    font-size: 48px;
+}
+
+h2 {
+    font-weight: normal;
+}
+
+li {
+    margin: 10px 0;
+}
